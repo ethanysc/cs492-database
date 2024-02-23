@@ -1,9 +1,9 @@
+package com.example.inventory.data
+
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.inventory.data.Item
-import com.example.inventory.data.ItemDao
 
 /**
  * Database class with a singleton Instance object.
@@ -21,8 +21,7 @@ abstract class InventoryDatabase : RoomDatabase() {
             // if the Instance is not null, return it, otherwise create a new database instance.
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, InventoryDatabase::class.java, "item_database")
-                    .build()
-                    .also { Instance = it }
+                    .build().also { Instance = it }
             }
         }
     }
