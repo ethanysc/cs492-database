@@ -4,7 +4,7 @@ import android.app.Application
 import com.example.flightsearch.data.AppContainer
 import com.example.flightsearch.data.AppDataContainer
 
-class InventoryApplication : Application() {
+class FlightSearchApp : Application() {
 
     lateinit var container: AppContainer
 
@@ -13,3 +13,5 @@ class InventoryApplication : Application() {
         container = AppDataContainer(this)
     }
 }
+
+
