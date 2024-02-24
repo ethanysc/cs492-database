@@ -16,8 +16,8 @@ import com.example.flightsearch.data.favorite.FavoriteDao
 )
 abstract class FlightDatabase: RoomDatabase() {
 
-    abstract fun airportDao(): AirportDao
-    abstract fun favoriteDao(): FavoriteDao
+    abstract fun airportsDao(): AirportDao
+    abstract fun favoritesDao(): FavoriteDao
 
     companion object {
         @Volatile
