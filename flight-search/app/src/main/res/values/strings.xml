@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Flight Search</string>
+    <string name="top_bar_title">Flight Search</string>
+    <string name="flight_search_placeholder_label">Enter departure airport</string>
+    <string name="flight_card_depart_label">DEPART</string>
+    <string name="flight_card_arrive_label">ARRIVE</string>
 </resources>
