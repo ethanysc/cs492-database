@@ -10,7 +10,7 @@ interface AirportDao {
     @Query(
         """
         SELECT * from airport 
-        WHERE name LIKE '%' || :searchString || '%' OR iata_code LIKE '%' || :searchString || '%'
+        WHERE ( name LIKE '%' || :searchString || '%' OR iata_code LIKE '%' || :searchString || '%' )
         ORDER BY passengers DESC
         """
     )
