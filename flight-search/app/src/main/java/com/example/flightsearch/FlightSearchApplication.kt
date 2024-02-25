@@ -1,17 +1,9 @@
 package com.example.flightsearch
 
 import android.app.Application
-import com.example.flightsearch.data.AppContainer
-import com.example.flightsearch.data.AppDataContainer
+import com.example.flightsearch.data.FlightDatabase
 
 class FlightSearchApplication : Application() {
-
-    lateinit var container: AppContainer
-
-    override fun onCreate() {
-        super.onCreate()
-        container = AppDataContainer(this)
-    }
+    val database: FlightDatabase by lazy { FlightDatabase.getDatabase(this) }
 }
-
 

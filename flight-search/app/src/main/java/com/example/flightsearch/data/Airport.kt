@@ -1,9 +1,9 @@
-package com.example.flightsearch.data.airport
+package com.example.flightsearch.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "airports")
+@Entity(tableName = "airport")
 data class Airport(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

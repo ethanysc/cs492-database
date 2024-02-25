@@ -4,10 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.flightsearch.data.airport.Airport
-import com.example.flightsearch.data.airport.AirportDao
-import com.example.flightsearch.data.favorite.Favorite
-import com.example.flightsearch.data.favorite.FavoriteDao
 
 @Database(
     entities = [Airport::class, Favorite::class],
@@ -15,9 +11,8 @@ import com.example.flightsearch.data.favorite.FavoriteDao
     exportSchema = false
 )
 abstract class FlightDatabase: RoomDatabase() {
-
-    abstract fun airportsDao(): AirportDao
-    abstract fun favoritesDao(): FavoriteDao
+    abstract fun airportDao(): AirportDao
+    abstract fun favoriteDao(): FavoriteDao
 
     companion object {
         @Volatile
@@ -25,8 +20,15 @@ abstract class FlightDatabase: RoomDatabase() {
 
         fun getDatabase(context: Context): FlightDatabase {
             return Instance ?: synchronized(this) {
-                Room.databaseBuilder(context, FlightDatabase::class.java, "flight_database")
-                    .build().also { Instance = it }
+                Room.databaseBuilder(
+                    context,
+                    FlightDatabase::class.java,
+                    "flight_database"
+                )
+                    .fallbackToDestructiveMigration()
+                    .createFromAsset("database/flight_search.db")
+                    .build()
+                    .also { Instance = it }
             }
         }
     }

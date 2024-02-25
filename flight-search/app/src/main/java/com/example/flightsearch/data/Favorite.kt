@@ -1,9 +1,9 @@
-package com.example.flightsearch.data.favorite
+package com.example.flightsearch.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "favorites")
+@Entity(tableName = "favorite")
 data class Favorite(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
