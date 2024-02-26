@@ -55,6 +55,7 @@ class AirportViewModel(private val airportDao: AirportDao): ViewModel() {
 
     fun searchAirports(searchString: String): Flow<List<Airport>> = airportDao.searchAirports(searchString)
     fun getFlightsByAirportId(id: Int?): Flow<List<Airport>> = airportDao.getFlightsByAirportId(id)
+    fun getAirportByIata(iata: String): Flow<List<Airport>> = airportDao.getAirportByIata(iata)
 
     companion object {
         val factory : ViewModelProvider.Factory = viewModelFactory {

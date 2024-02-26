@@ -1,11 +1,15 @@
+package com.example.flightsearch.ui
+
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,27 +25,27 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.flightsearch.R
 import com.example.flightsearch.data.Airport
-import com.example.flightsearch.ui.AirportViewModel
-import com.example.flightsearch.ui.FavoriteViewModel
-import com.example.flightsearch.ui.theme.FlightSearchTheme
+import com.example.flightsearch.data.Favorite
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,16 +70,14 @@ fun FlightSearchApp (
         topBar = { FlightSearchTopAppBar(title = topAppBarTitle) }
     ) { innerPadding ->
         Column (
-            modifier = Modifier
-                .padding(innerPadding)
-                .background(Color(0x1F5FA6))
+            modifier = Modifier.padding(innerPadding)
         ) {
             FlightSearchInput(
                 searchString = searchString,
-                viewModel = airportViewModel,
+                airportViewModel = airportViewModel,
                 isSelectingDestination = isSelectingDestination
             )
-            if (searchString != "") { // Render autocomplete suggestions
+            if (searchString != "" && !isSelectingDestination) { // Render autocomplete suggestions
                 FlightSearchAutoComplete(
                     airportsList = airportsList,
                     viewModel = airportViewModel
@@ -87,7 +89,11 @@ fun FlightSearchApp (
                     favoriteViewModel = favoriteViewModel
                 )
             } else { // Render Favorites
-                Text(text = "Favorites")
+//                FavoriteFlights(
+//                    favoritesList = favoritesList,
+//                    airportViewModel = airportViewModel,
+//                    favoriteViewModel = favoriteViewModel
+//                )
             }
         }
     }
@@ -97,37 +103,39 @@ fun FlightSearchApp (
 @Composable
 fun FlightSearchTopAppBar (title: String) {
     TopAppBar(
-        title = { Text(title) },
+        title = { Text(title, color = Color.White) },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            containerColor = MaterialTheme.colorScheme.primary,
         )
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightSearchInput (
     searchString: String = "",
-    viewModel: AirportViewModel,
+    airportViewModel: AirportViewModel,
     isSelectingDestination: Boolean
 ) {
     val coroutineScope = rememberCoroutineScope()
     val placeholder = stringResource(R.string.flight_search_placeholder_label)
-    OutlinedTextField(
+    TextField(
         value = searchString,
         onValueChange = {
             coroutineScope.launch {
                 if (isSelectingDestination) { // If user edits search input while picking flight connection, restart user flow from beginning
-                    viewModel.toggleIsSelectingDestination()
-                    viewModel.selectDepartureAirport(null)
+                    airportViewModel.toggleIsSelectingDestination()
+                    airportViewModel.selectDepartureAirport(null)
                 }
-                viewModel.updateSearchString(it)
+                airportViewModel.updateSearchString(it)
             }
         },
         placeholder = { Text(placeholder) },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
         ),
         leadingIcon = { Icon(imageVector = Icons.Outlined.Search, contentDescription = null) },
         shape = RoundedCornerShape(75),
@@ -153,7 +161,7 @@ fun FlightSearchAutoComplete(
                     .fillMaxWidth()
                     .clickable() {
                         coroutineScope.launch {
-                            viewModel.getFlightsByAirportId(airport.id)
+                            viewModel.selectDepartureAirport(airport)
                             viewModel.toggleIsSelectingDestination()
                         }
                     }
@@ -186,27 +194,78 @@ fun FlightSuggestions(
     favoriteViewModel: FavoriteViewModel,
     modifier: Modifier = Modifier
 ) {
+    val departureIata = selectedDepartureAirport?.iata_code
+    Text(
+        text = "Flights from $departureIata",
+        style = TextStyle(
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        ),
+        modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 18.dp)
+    )
     LazyColumn(
-        modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+        modifier = Modifier.padding(horizontal = 18.dp),
     ) {
         items(suggestionsList) { suggestion ->
             if (selectedDepartureAirport != null) {
                 FlightCard(
                     departureAirport = selectedDepartureAirport,
-                    arrivalAirport = suggestion
+                    arrivalAirport = suggestion,
+                    favoriteViewModel = favoriteViewModel
                 )
             }
         }
     }
 }
 
+//@Composable
+//fun FavoriteFlights (
+//    favoritesList: List<Favorite>,
+//    airportViewModel: AirportViewModel,
+//    favoriteViewModel: FavoriteViewModel
+//) {
+//    if (favoritesList.isEmpty()) {
+//        Text(text = "No favorites selected yet")
+//    } else {
+//        LazyColumn(
+//            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+//        ) {
+//            items(favoritesList) { favorite ->
+//                val departureAirport = airportViewModel.getAirportByIata(favorite.departure_code).collectAsState(EmptyList())
+//                val arrivalAirport = airportViewModel.getAirportByIata(favorite.destination_code)
+//                FlightCard(
+//                    departureAirport = departureAirport,
+//                    arrivalAirport = arrivalAirport,
+//                    airportViewModel = airportViewModel,
+//                    favoriteViewModel = favoriteViewModel
+//                )
+//            }
+//        }
+//    }
+//
+//}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightCard(
     departureAirport: Airport,
-    arrivalAirport: Airport
+    arrivalAirport: Airport,
+    favoriteViewModel: FavoriteViewModel
 ) {
     val flightCardDepartureLabel = stringResource(R.string.flight_card_departure_label)
     val flightCardArrivalLabel = stringResource(R.string.flight_card_arrival_label)
+    val coroutineScope = rememberCoroutineScope()
+
+    val favoriteFlight = favoriteViewModel
+        .getFavoriteByIata(departureAirport.iata_code, arrivalAirport.iata_code)
+        .collectAsState(emptyList())
+        .value
+    val notFavoriteFlight = favoriteFlight.isEmpty()
+    val starTintColor = if (notFavoriteFlight) {
+            Color(0xFF74777E)
+        } else {
+            Color(0xFF934B01)
+        }
 
     Card(
         colors = CardDefaults.cardColors(
@@ -214,25 +273,31 @@ fun FlightCard(
         ),
         shape = RoundedCornerShape(
             topStartPercent = 0,
-            topEndPercent = 50,
+            topEndPercent = 12,
             bottomStartPercent = 0,
             bottomEndPercent = 0
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 5.dp)
+            .padding(bottom = 10.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth(0.8f)) {
                 Text(
                     text = flightCardDepartureLabel,
                     style = TextStyle(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
+                        fontSize = 12.sp
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Row(modifier = Modifier.fillMaxWidth()) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp)) {
                     Text(
                         text = departureAirport.iata_code,
                         style = TextStyle(
@@ -249,28 +314,52 @@ fun FlightCard(
                         ),
                     )
                 }
-                Text(text = flightCardArrivalLabel)
+                Text(
+                    text = flightCardArrivalLabel,
+                    style = TextStyle(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = arrivalAirport.iata_code, modifier = Modifier.padding(end = 8.dp))
-                    Text(text = arrivalAirport.name)
+                    Text(
+                        text = arrivalAirport.iata_code,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        ),
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = arrivalAirport.name,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp
+                        ),
+                    )
                 }
             }
-            Column(
-                modifier = Modifier.width(20.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(imageVector = Icons.Filled.Star, contentDescription = null)
+            Column(modifier = Modifier.offset(30.dp, 30.dp)) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = starTintColor,
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clickable {
+                            if (notFavoriteFlight) {
+                                val newFavorite = Favorite(
+                                    departure_code = departureAirport.iata_code,
+                                    destination_code = arrivalAirport.iata_code
+                                )
+                                coroutineScope.launch { favoriteViewModel.insert(newFavorite) }
+                            } else {
+                                coroutineScope.launch { favoriteViewModel.delete(favoriteFlight.first()) }
+                            }
+                        }
+                )
             }
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-private fun FlightSearchApp() {
-    FlightSearchTheme {
-        FlightSearchApp()
     }
 }

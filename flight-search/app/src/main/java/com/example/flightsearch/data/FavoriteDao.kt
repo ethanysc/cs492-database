@@ -18,6 +18,14 @@ interface FavoriteDao {
     )
     fun getAllFavorites(): Flow<List<Favorite>>
 
+    @Query(
+        """
+        SELECT * from favorite 
+        WHERE departure_code = :departureCode AND destination_code = :destinationCode
+        """
+    )
+    fun getFavoriteByIata(departureCode: String, destinationCode: String): Flow<List<Favorite>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(favorite: Favorite)
 
