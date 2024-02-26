@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,8 +52,10 @@ fun FlightSearchApp (
     val airportUiState = airportViewModel.airportUiState.collectAsState()
     val searchString = airportUiState.value.searchString
     val isSelectingDestination = airportUiState.value.isSelectingDestination
+    val suggestionDepartureId = airportUiState.value.suggestionDepartureId
 
     val airportsList by airportViewModel.searchAirports(searchString).collectAsState(emptyList())
+    val suggestionsList by airportViewModel.getFlightsByAirportId(suggestionDepartureId).collectAsState(emptyList())
     val favoritesList by favoriteViewModel.getAllFavorites().collectAsState(emptyList())
 
     Scaffold(
@@ -67,7 +68,8 @@ fun FlightSearchApp (
         ) {
             FlightSearchInput(
                 searchString = searchString,
-                viewModel = airportViewModel
+                viewModel = airportViewModel,
+                isSelectingDestination = isSelectingDestination
             )
             if (searchString != "") { // Render autocomplete suggestions
                 FlightSearchAutoComplete(
@@ -75,7 +77,10 @@ fun FlightSearchApp (
                     viewModel = airportViewModel
                 )
             } else if (isSelectingDestination) { // Render flight suggestions
-                Text(text = "Hello here are the flight suggestions")
+                FlightSuggestions(
+                    suggestionsList = suggestionsList,
+                    favoriteViewModel = favoriteViewModel
+                )
             } else { // Render Favorites
                 Text(text = "Favorites")
             }
@@ -98,6 +103,7 @@ fun FlightSearchTopAppBar (title: String) {
 fun FlightSearchInput (
     searchString: String = "",
     viewModel: AirportViewModel,
+    isSelectingDestination: Boolean
 ) {
     val coroutineScope = rememberCoroutineScope()
     val placeholder = stringResource(R.string.flight_search_placeholder_label)
@@ -105,6 +111,10 @@ fun FlightSearchInput (
         value = searchString,
         onValueChange = {
             coroutineScope.launch {
+                if (isSelectingDestination) { // If user edits search input while picking flight connection, restart user flow from beginning
+                    viewModel.toggleIsSelectingDestination()
+                    viewModel.selectSuggestionDepartureId(null)
+                }
                 viewModel.updateSearchString(it)
             }
         },
@@ -161,6 +171,15 @@ fun FlightSearchAutoComplete(
             }
         }
     }
+}
+
+@Composable
+fun FlightSuggestions(
+    suggestionsList: List<Airport>,
+    favoriteViewModel: FavoriteViewModel,
+    modifier: Modifier = Modifier
+) {
+
 }
 
 @Preview(showBackground = true)

@@ -45,8 +45,16 @@ class AirportViewModel(private val airportDao: AirportDao): ViewModel() {
         }
     }
 
+    fun selectSuggestionDepartureId(suggestionDepartureId: Int?) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                suggestionDepartureId = suggestionDepartureId
+            )
+        }
+    }
+
     fun searchAirports(searchString: String): Flow<List<Airport>> = airportDao.searchAirports(searchString)
-    fun getFlightsByAirportId(id: Int): Flow<List<Airport>> = airportDao.getFlightsByAirportId(id)
+    fun getFlightsByAirportId(id: Int?): Flow<List<Airport>> = airportDao.getFlightsByAirportId(id)
 
     companion object {
         val factory : ViewModelProvider.Factory = viewModelFactory {
@@ -61,6 +69,7 @@ class AirportViewModel(private val airportDao: AirportDao): ViewModel() {
 data class AirportUiState(
     val searchString: String = "",
     val isSelectingDestination: Boolean = false,
+    val suggestionDepartureId: Int? = null,
 )
 
 //package com.example.flightsearch.ui.airport

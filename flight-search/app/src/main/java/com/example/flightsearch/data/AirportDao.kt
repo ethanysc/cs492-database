@@ -24,5 +24,5 @@ interface AirportDao {
         ORDER by passengers DESC 
         """
     )
-    fun getFlightsByAirportId(id: Int): Flow<List<Airport>>
+    fun getFlightsByAirportId(id: Int?): Flow<List<Airport>>
 }
