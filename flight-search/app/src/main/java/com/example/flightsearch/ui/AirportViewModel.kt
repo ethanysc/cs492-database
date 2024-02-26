@@ -45,10 +45,10 @@ class AirportViewModel(private val airportDao: AirportDao): ViewModel() {
         }
     }
 
-    fun selectSuggestionDepartureId(suggestionDepartureId: Int?) {
+    fun selectDepartureAirport(selectedDepartureAirport: Airport?) {
         _uiState.update { currentState ->
             currentState.copy(
-                suggestionDepartureId = suggestionDepartureId
+                selectedDepartureAirport = selectedDepartureAirport
             )
         }
     }
@@ -69,48 +69,5 @@ class AirportViewModel(private val airportDao: AirportDao): ViewModel() {
 data class AirportUiState(
     val searchString: String = "",
     val isSelectingDestination: Boolean = false,
-    val suggestionDepartureId: Int? = null,
+    val selectedDepartureAirport: Airport? = null,
 )
-
-//package com.example.flightsearch.ui.airport
-//
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import com.example.flightsearch.data.Airport
-//import com.example.flightsearch.data.airport.AirportsRepository
-//import kotlinx.coroutines.flow.SharingStarted
-//import kotlinx.coroutines.flow.map
-//import kotlinx.coroutines.flow.stateIn
-//
-//class AirportViewModel(private val airportsRepository: AirportsRepository) : ViewModel() {
-//    companion object {
-//        private const val TIMEOUT_MILLIS = 5_000L
-//    }
-//
-//    var airportUiState = AirportUiState(listOf())
-//
-//    fun searchAirports(searchString: String) {
-//        airportsRepository.searchAirports() //searchString
-//            .map { AirportUiState(airportsList = it) }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-//                initialValue = AirportUiState()
-//            )
-//    }
-//
-//    fun searchFlightConnections(id: Int) {
-//        airportsRepository.getFlightsByAirportId(id)
-//            .map { AirportUiState(flightConnectionsList = it) }
-//            .stateIn(
-//                scope = viewModelScope,
-//                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-//                initialValue = AirportUiState()
-//            )
-//    }
-//}
-//
-//data class AirportUiState(
-//    val airportsList: List<Airport> = listOf(),
-//    val flightConnectionsList: List<Airport> = listOf()
-//)
